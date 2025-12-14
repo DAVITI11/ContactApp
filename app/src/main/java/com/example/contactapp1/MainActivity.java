@@ -16,8 +16,11 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class MainActivity extends AppCompatActivity {
     ListView ListV;
@@ -53,9 +56,15 @@ public class MainActivity extends AppCompatActivity {
             showTwoInputDialog();
         });
         ListV.setOnItemLongClickListener((parent, view, position, id) -> {
-            BaseCont dataBase=new BaseCont(getApplicationContext(),"ContactAppBase.db",null,1);
-            dataBase.DeleteContact(arrayList.get(position).Name,arrayList.get(position).Tel);
-            ShowContacts();
+            DeleteContact(result -> {
+                if (result) {
+                    BaseCont dataBase = new BaseCont(getApplicationContext(), "ContactAppBase.db", null, 1);
+                    dataBase.DeleteContact(arrayList.get(position).Name, arrayList.get(position).Tel);
+                    ShowContacts();
+                } else {
+                    Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
+                }
+            });
             return true;
         });
     }
@@ -97,7 +106,12 @@ public class MainActivity extends AppCompatActivity {
         CstmAdpt costumAdapter=new CstmAdpt(getApplicationContext(),arrayList);
         ListV.setAdapter(costumAdapter);
     }
-    public boolean DialogDeleteShow(){
-        return true;
+    public void DeleteContact(Consumer<Boolean> callback) {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Do you want to delete this contact?")
+                .setPositiveButton("Yes", (dialog, which) -> callback.accept(true))
+                .setNegativeButton("No", (dialog, which) -> callback.accept(false))
+                .show();
     }
+
 }
